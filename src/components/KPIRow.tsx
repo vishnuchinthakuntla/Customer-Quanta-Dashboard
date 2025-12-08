@@ -1,91 +1,93 @@
-import { Users, Target, Zap, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
+import { useEffect, useState } from "react";
+import { Users, Target, Zap, Clock, TrendingUp, AlertTriangle } from "lucide-react";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { getDashboard, DashboardKPI } from "../api/dashboardApi";
 
-const kpis = [
-  {
-    label: 'DAU / MAU',
-    value: '42.3%',
-    subvalue: '12.4K / 29.3K',
-    change: '+2.1%',
-    trend: 'up',
-    icon: Users,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-  },
-  {
-    label: 'Stickiness',
-    value: '34.8%',
-    subvalue: 'DAU/MAU ratio',
-    change: '+1.4%',
-    trend: 'up',
-    icon: Target,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-  },
-  {
-    label: 'Feature Adoption',
-    value: '67.2%',
-    subvalue: 'Feature X',
-    change: '+11.0%',
-    trend: 'up',
-    icon: Zap,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-  },
-  {
-    label: 'TTV (p50)',
-    value: '2.3min',
-    subvalue: 'Time to Value',
-    change: '-0.4min',
-    trend: 'up',
-    icon: Clock,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-  },
-  {
-    label: 'Funnel CVR',
-    value: '23.4%',
-    subvalue: 'View → Purchase',
-    change: '+3.2%',
-    trend: 'up',
-    icon: TrendingUp,
-    color: 'text-cyan-600',
-    bgColor: 'bg-cyan-50',
-  },
-  {
-    label: 'Crash Rate',
-    value: '0.89%',
-    subvalue: 'Last 7 days',
-    change: '-0.11%',
-    trend: 'up',
-    icon: AlertTriangle,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-  },
-];
+// Map string → Icon Component
+const IconMap: Record<string, any> = {
+  users: Users,
+  target: Target,
+  zap: Zap,
+  clock: Clock,
+  trending_up: TrendingUp,
+  alert: AlertTriangle,
+};
 
-export function KPIRow() {
+export function KPIRow({ platform, region, featureName }: {
+  platform?: string | null;
+  region?: string | null;
+  featureName?: string | null;
+}) {
+  const [kpis, setKpis] = useState<DashboardKPI[]>([]);
+  const [loading, setLoading] = useState(true);
+
+ useEffect(() => {
+  const fetchDashboard = async () => {
+    setLoading(true);
+    try {
+      const res = await getDashboard(platform, region, featureName);
+
+      if (res.success && res.data?.cards?.overall) {
+        const overall = res.data.cards.overall;
+
+        
+        const mapped = Object.keys(overall).map(key => {
+          const item = overall[key];
+
+          return {
+            label: item.title,
+            value: item.value,
+            subvalue: item.sub_value,
+            change: item.change || "",         
+            trend: (item.trend === "up" || item.trend === "down") ? item.trend : "up",     
+            icon: item.icon || "users",        
+            color: item.color || "blue"         
+          };
+        });
+
+        setKpis(mapped);
+      }
+    } catch (err) {
+      console.error("Failed to load KPI dashboard", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchDashboard();
+}, [platform, region, featureName]);
+
+
+  if (loading) {
+    return <div className="text-center py-6 text-slate-500">Loading KPIs...</div>;
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       {kpis.map((kpi, i) => {
-        const Icon = kpi.icon;
+        const Icon = IconMap[kpi.icon] || Users; 
+        const colorClass = `text-${kpi.color}-600`;
+        const bgClass = `bg-${kpi.color}-50`;
+
         return (
           <Card key={i} className="p-4">
             <div className="flex items-start justify-between mb-3">
-              <div className={`${kpi.bgColor} ${kpi.color} p-2 rounded-lg`}>
+              <div className={`${bgClass} ${colorClass} p-2 rounded-lg`}>
                 <Icon className="w-4 h-4" />
               </div>
-              <Badge 
-                variant={kpi.trend === 'up' ? 'default' : 'secondary'}
+
+              <Badge
+                variant={kpi.trend === "up" ? "default" : "secondary"}
                 className="text-xs"
               >
                 {kpi.change}
               </Badge>
             </div>
+
             <div className="space-y-1">
               <p className="text-sm text-slate-600">{kpi.label}</p>
-              <p className={kpi.color}>{kpi.value}</p>
+              <p className={colorClass}>{kpi.value}</p>
               <p className="text-xs text-slate-500">{kpi.subvalue}</p>
             </div>
           </Card>

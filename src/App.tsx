@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { supabase } from './lib/supabaseClient';
+import { useState } from 'react';
 
 import { AppHeader } from './components/AppHeader';
 import { FilterBar } from './components/FilterBar';
@@ -16,7 +15,6 @@ import { RecommendationsModule } from './components/RecommendationsModule';
 import { RCAPanel } from './components/RCAPanel';
 
 export default function App() {
-
   const [filters, setFilters] = useState({
     platform: 'all',
     version: 'all',
@@ -25,51 +23,32 @@ export default function App() {
     region: 'all',
   });
 
-  const [dashboardData, setDashboardData] = useState<any>(null);
-
-  // Fetch data from Supabase
-  const loadDashboardData = async () => {
-    const { data, error } = await supabase
-      .from('dashboard_metrics') 
-      .select('*');
-
-    if (error) {
-      console.error("Supabase error:", error);
-    } else {
-      setDashboardData(data);
-    }
-  };
-
-  console.log('Dashboard Data:', dashboardData);
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  // Placeholder dashboard data (since Supabase was removed)
+  const dashboardData = null;
 
   return (
     <div className="min-h-screen bg-slate-50">
       <AppHeader />
 
       <div className="p-6 space-y-6">
-
         <FilterBar filters={filters} onFilterChange={setFilters} />
 
-        {/* Example: pass data to KPIRow */}
-        <KPIRow data={dashboardData} />
+        <KPIRow />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <UsageTrendsChart data={dashboardData} />
-          <CohortAdoptionChart data={dashboardData} />
+          <UsageTrendsChart />
+          <CohortAdoptionChart />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <TTVDistributionChart data={dashboardData} />
+            <TTVDistributionChart />
           </div>
-          <WebVitalsWidget data={dashboardData} />
+          <WebVitalsWidget  />
         </div>
 
-        <ConversionFunnelChart data={dashboardData} />
-        <ExperimentsTable data={dashboardData} />
+        <ConversionFunnelChart  />
+        <ExperimentsTable  />
 
         <AskAIPanel />
         <AIInsightsModule />

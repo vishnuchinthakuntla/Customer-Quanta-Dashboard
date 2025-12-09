@@ -33,7 +33,7 @@ export default function App() {
       <div className="p-6 space-y-6">
         <FilterBar filters={filters} onFilterChange={setFilters} />
 
-        <KPIRow />
+         <KPIRow filters={filters} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <UsageTrendsChart />

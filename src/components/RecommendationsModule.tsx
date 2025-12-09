@@ -1,43 +1,96 @@
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
-import { Rocket, Wrench, ChevronRight } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Rocket, Wrench, ChevronRight } from "lucide-react";
+import { getAIRecommendations } from "../api/dashboardApi";
 
-const recommendations = [
-  {
-    icon: Rocket,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    priority: 'High',
-    priorityColor: 'default',
-    title: 'Roll forward A/B winner to 25% traffic',
-    description: 'The "New Onboarding Flow" variant B has achieved statistical significance (p=0.003) with strong positive results. Recommendation: Gradually increase traffic to 25% while monitoring LCP guardrail (currently +12ms). Set rollback trigger if LCP exceeds +50ms or DAU drops >2%.',
-    impact: 'Estimated +1.2K DAU',
-    effort: 'Low',
-  },
-  {
-    icon: Wrench,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-    priority: 'Medium',
-    priorityColor: 'secondary',
-    title: 'Fix carousel rage-click issue',
-    description: 'Detected 142 rage-click events on the image carousel in the last 24 hours, suggesting a UX friction point. Analysis shows users expect faster image transitions. Recommendation: Add 300ms debounce and visual loading indicator. Similar fix reduced rage-clicks by 67% in previous iteration.',
-    impact: 'Better UX, -60% rage clicks',
-    effort: 'Medium',
-  },
-];
+export function RecommendationsModule({
+  platform = "all",
+  region = "all",
+  featureName = "all",
+  version = "all",
+  segment = "all",
+}: {
+  platform?: string;
+  region?: string;
+  featureName?: string;
+  version?: string;
+  segment?: string;
+}) {
+  const [recs, setRecs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export function RecommendationsModule() {
+  // Map API response → UI structure
+  const mapApiToUI = (data: any) => {
+    return [
+      {
+        icon: Rocket,
+        color: "text-green-600",
+        bgColor: "bg-green-50",
+        priority: data.recommendation_1.priority,
+        priorityColor: data.recommendation_1.priority === "High" ? "default" : "secondary",
+        title: data.recommendation_1.title,
+        description: data.recommendation_1.description,
+        impact: data.recommendation_1.expected_impact,
+        effort: data.recommendation_1.effort,
+      },
+      {
+        icon: Wrench,
+        color: "text-amber-600",
+        bgColor: "bg-amber-50",
+        priority: data.recommendation_2.priority,
+        priorityColor: data.recommendation_2.priority === "High" ? "default" : "secondary",
+        title: data.recommendation_2.title,
+        description: data.recommendation_2.description,
+        impact: data.recommendation_2.expected_impact,
+        effort: data.recommendation_2.effort,
+      },
+    ];
+  };
+
+  useEffect(() => {
+    const fetchRecs = async () => {
+      try {
+        setLoading(true);
+        const data = await getAIRecommendations(
+          platform,
+          region,
+          featureName,
+          version,
+          segment
+        );
+        setRecs(mapApiToUI(data));
+      } catch (err: any) {
+        setError(err.message || "Failed to load recommendations");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecs();
+  }, [platform, region, featureName, version, segment]);
+
+  if (loading) {
+    return <div className="p-6 text-slate-500">Loading recommendations...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-600">Failed to load: {error}</div>;
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <h2 className="text-slate-900">AI Recommendations</h2>
-        <p className="text-sm text-slate-500">Actionable suggestions based on your data</p>
+        <p className="text-sm text-slate-500">
+          Actionable suggestions based on your data
+        </p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {recommendations.map((rec, i) => {
+        {recs.map((rec, i) => {
           const Icon = rec.icon;
           return (
             <Card key={i} className="p-5">
@@ -56,10 +109,12 @@ export function RecommendationsModule() {
                   </div>
                 </div>
               </div>
-              
+
               <h4 className="text-slate-900 mb-2">{rec.title}</h4>
-              <p className="text-sm text-slate-600 leading-relaxed mb-3">{rec.description}</p>
-              
+              <p className="text-sm text-slate-600 leading-relaxed mb-3">
+                {rec.description}
+              </p>
+
               <div className="flex items-center justify-between pt-3 border-t border-slate-200">
                 <p className="text-sm text-slate-700">{rec.impact}</p>
                 <Button size="sm" variant="ghost">

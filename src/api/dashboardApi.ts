@@ -1,122 +1,127 @@
+// src/api/api.ts
 import baseApi from "./baseApi";
+import {
+  CrashRateResponse,
+  FiltersResponse,
+  FeatureCohortResponse,
+  DashboardResponse,
+  AIInsightsResponse,
+  AIRecommendationsResponse
+} from "../models/models";
 
-// ------- API Response Types -------
-export interface CrashDeviceEntry {
-  device_model: string;
-  total_crashes: number;
-}
+import { normalizeFilters } from "../utils/filterUtils";
 
-export interface CrashRateResponse {
-  total_crashes: number;
-  data: CrashDeviceEntry[];
-}
-export interface FiltersResponse {
-  success: boolean;
-  message: string;
-  data: {
-    platforms: string[];
-    versions: string[];
-    features: string[];
-    segments: string[];
-    regions: string[];
-  };
-}
-export interface FeatureCohortItem {
-  cohort: string;
-  adoption: number;
-  retention: number;
-}
-
-export interface FeatureCohortResponse {
-  data: FeatureCohortItem[];
-}
-
-export interface DashboardKPI {
-  label: string;
-  value: string;
-  subvalue: string;
-  change: string;
-  trend: "up" | "down";
-  icon: string;
-  color: string;
-  
-
-}
-
-
-export interface DashboardResponse {
-  success: boolean;
-  message: string;
-  data: {
-    filters_used: {
-      platform: string;
-      region: string;
-      feature_name: string;
-    };
-    cards: {
-      overall: {
-        [key: string]: {
-          title: string;
-          value: string;
-          sub_value: string;
-          change?: string;
-          trend?: "up" | "down" | "neutral";
-          icon?: string;
-          color?: string;
-        };
-      };
-    };
-    usage_trends_chart: { data: any[] };
-    cohort_chart: { data: any[] };
-    conversion_funnel_details: any[];
-    ab_experiments: any[];
-  };
-}
-
-
-// ------- API Function -------
+// ------------------------------------------------
+//  Get Crash Rate By Device  (supports ONLY platform)
+// ------------------------------------------------
 export const getCrashRateByDevice = async (
-  platform: string
+  filters: any
 ): Promise<CrashRateResponse> => {
-  const payload = { platform };
+  const params = normalizeFilters(filters, ["platform"]);
 
   const res = await baseApi.post<CrashRateResponse>(
     "/crash-rate-by-device",
-    payload
+    {},
+    { params }
   );
 
   return res.data;
 };
+
+// ------------------------------------------------
+// Get Filters (no change)
+// ------------------------------------------------
 export const getFilters = async (): Promise<FiltersResponse> => {
   const res = await baseApi.get<FiltersResponse>("/api/filters");
   return res.data;
 };
+
+// ------------------------------------------------
+// Get Feature Adoption Cohort (supports ONLY feature_name)
+// ------------------------------------------------
 export const getFeatureAdoptionCohort = async (
-  featureName?: string | null
+  filters: any
 ): Promise<FeatureCohortResponse> => {
+  const params = normalizeFilters(filters, ["feature_name"]);
+
   const res = await baseApi.post<FeatureCohortResponse>(
     "/feature-adoption-cohort",
+    {},
+    { params }
+  );
+
+  return res.data;
+};
+
+// ------------------------------------------------
+// Get Dashboard Data (supports ALL filters)
+// ------------------------------------------------
+export const getDashboard = async (
+  filters: any
+): Promise<DashboardResponse> => {
+  const params = normalizeFilters(filters, [
+    "platform",
+    "region",
+    "feature_name",
+    "version",
+    "segment",
+  ]);
+
+  const res = await baseApi.get<DashboardResponse>("/api/dashboard", {
+    params,
+  });
+
+  return res.data;
+};
+
+// ------------------------------------------------
+// AI Insights (supports ALL filters)
+// ------------------------------------------------
+export const getAIInsights = async (
+  filters: any
+): Promise<AIInsightsResponse> => {
+  const params = normalizeFilters(filters, [
+    "platform",
+    "region",
+    "feature_name",
+    "version",
+    "segment",
+  ]);
+
+  const res = await baseApi.post<AIInsightsResponse>(
+    "/ai-insights",
+    "",
     {
-      feature_name:
-        featureName && featureName.trim() !== "" ? featureName : null,
+      params,
+      headers: { accept: "application/json" },
     }
   );
 
   return res.data;
 };
 
-export const getDashboard = async (
-  platform?: string | null,
-  region?: string | null,
-  featureName?: string | null
-): Promise<DashboardResponse> => {
-  const res = await baseApi.get<DashboardResponse>("/api/dashboard", {
-    params: {
-      platform: platform || null,
-      region: region || null,
-      feature_name: featureName || null,
+// ------------------------------------------------
+// AI Recommendations (supports ALL filters)
+// ------------------------------------------------
+export const getAIRecommendations = async (
+  filters: any
+): Promise<AIRecommendationsResponse> => {
+  const params = normalizeFilters(filters, [
+    "platform",
+    "region",
+    "feature_name",
+    "version",
+    "segment",
+  ]);
+
+  const res = await baseApi.post<AIRecommendationsResponse>(
+    "/ai-recommendations",
+    "",
+    {
+      params,
+      headers: { accept: "application/json" },
     }
-  });
+  );
 
   return res.data;
 };

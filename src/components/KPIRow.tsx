@@ -14,50 +14,59 @@ const IconMap: Record<string, any> = {
   alert: AlertTriangle,
 };
 
-export function KPIRow({ platform, region, featureName }: {
-  platform?: string | null;
-  region?: string | null;
-  featureName?: string | null;
-}) {
+export function KPIRow({ filters }: { filters: any }) {
   const [kpis, setKpis] = useState<DashboardKPI[]>([]);
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
-  const fetchDashboard = async () => {
-    setLoading(true);
-    try {
-      const res = await getDashboard(platform, region, featureName);
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      setLoading(true);
 
-      if (res.success && res.data?.cards?.overall) {
-        const overall = res.data.cards.overall;
+      try {
+        // ✅ Correct API call — passing individual values, not whole object
+        const res = await getDashboard(
+          filters.platform,
+          filters.region,
+          filters.feature,
+          filters.version,
+          filters.segment
+        );
 
-        
-        const mapped = Object.keys(overall).map(key => {
-          const item = overall[key];
+        if (res.success && res.data?.cards?.overall) {
+          const overall = res.data.cards.overall;
 
-          return {
-            label: item.title,
-            value: item.value,
-            subvalue: item.sub_value,
-            change: item.change || "",         
-            trend: (item.trend === "up" || item.trend === "down") ? item.trend : "up",     
-            icon: item.icon || "users",        
-            color: item.color || "blue"         
-          };
-        });
+         const mapped = Object.keys(overall).map((key) => {
+  const item = overall[key];
 
-        setKpis(mapped);
-      }
-    } catch (err) {
-      console.error("Failed to load KPI dashboard", err);
-    } finally {
-      setLoading(false);
-    }
+  return {
+    label: item.title,
+    value: item.value,
+    subvalue: item.sub_value,
+    change: item.change || "",
+    trend: (item.trend === "down" ? "down" : "up") as "up" | "down",
+    icon: item.icon || "users",
+    color: item.color || "blue",
   };
+});
 
-  fetchDashboard();
-}, [platform, region, featureName]);
 
+          setKpis(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load KPI dashboard", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, [
+    filters.platform,
+    filters.region,
+    filters.feature,
+    filters.version,
+    filters.segment
+  ]);
 
   if (loading) {
     return <div className="text-center py-6 text-slate-500">Loading KPIs...</div>;
@@ -66,7 +75,7 @@ export function KPIRow({ platform, region, featureName }: {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       {kpis.map((kpi, i) => {
-        const Icon = IconMap[kpi.icon] || Users; 
+        const Icon = IconMap[kpi.icon] || Users;
         const colorClass = `text-${kpi.color}-600`;
         const bgClass = `bg-${kpi.color}-50`;
 

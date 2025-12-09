@@ -10,7 +10,7 @@ import {
 } from "./ui/select";
 import { Card } from "./ui/card";
 
-import { getFilters, FiltersResponse } from "../api/dashboardApi";
+import { getFilters } from "../api/dashboardApi";
 
 interface NormalizedOption {
   value: string;
@@ -45,26 +45,32 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
     regions: [],
   });
 
-  // -------- Fetch filters from backend --------
+  // Fetch filters from backend
   useEffect(() => {
     async function loadFilters() {
       try {
         const res = await getFilters();
         const data = res.data;
 
-        const normalize = (arr: string[]): NormalizedOption[] =>
-          arr.map((item) => ({
-            value: item.toLowerCase().replace(/\s+/g, "_"),
-            label: item,
-          }));
+        const normalize = (
+          arr: string[],
+          defaultLabel: string
+        ): NormalizedOption[] => [
+            { value: "all", label: defaultLabel }, // ✔ Radix requires non-empty values
+            ...arr.map((item) => ({
+              value: item.toLowerCase().replace(/\s+/g, "_"),
+              label: item,
+            })),
+          ];
 
         setFilterOptions({
-          platforms: normalize(data.platforms),
-          versions: normalize(data.versions),
-          features: normalize(data.features),
-          segments: normalize(data.segments),
-          regions: normalize(data.regions),
+          platforms: normalize(data.platforms || [], "All Platforms"),
+          versions: normalize(data.versions || [], "All Versions"),
+          features: normalize(data.features || [], "All Features"),
+          segments: normalize(data.segments || [], "All Segments"),
+          regions: normalize(data.regions || [], "All Regions"),
         });
+
       } catch (error) {
         console.error("Error loading filters:", error);
       }
@@ -86,7 +92,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
           <span className="text-sm">Filters</span>
         </div>
 
-        {/* ------------ PLATFORM ------------ */}
+        {/* PLATFORM */}
         <Select
           value={filters.platform}
           onValueChange={(v) => handleChange("platform", v)}
@@ -103,7 +109,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
           </SelectContent>
         </Select>
 
-        {/* ------------ VERSION ------------ */}
+        {/* VERSION */}
         <Select
           value={filters.version}
           onValueChange={(v) => handleChange("version", v)}
@@ -120,7 +126,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
           </SelectContent>
         </Select>
 
-        {/* ------------ FEATURE ------------ */}
+        {/* FEATURE */}
         <Select
           value={filters.feature}
           onValueChange={(v) => handleChange("feature", v)}
@@ -137,7 +143,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
           </SelectContent>
         </Select>
 
-        {/* ------------ SEGMENT ------------ */}
+        {/* SEGMENT */}
         <Select
           value={filters.segment}
           onValueChange={(v) => handleChange("segment", v)}
@@ -154,7 +160,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
           </SelectContent>
         </Select>
 
-        {/* ------------ REGION ------------ */}
+        {/* REGION */}
         <Select
           value={filters.region}
           onValueChange={(v) => handleChange("region", v)}

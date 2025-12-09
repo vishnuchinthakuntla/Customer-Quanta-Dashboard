@@ -1,50 +1,115 @@
-import { Card } from './ui/card';
-import { Badge } from './ui/badge';
-import { Lightbulb, AlertCircle, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Lightbulb, AlertCircle, TrendingUp } from "lucide-react";
+import { getAIInsights } from "../api/dashboardApi"; 
 
-const insights = [
-  {
-    type: 'Key Insight',
-    icon: Lightbulb,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    title: 'Feature X adoption surging in v3.4',
-    description: 'Feature X adoption increased by 11% in version 3.4, primarily driven by the new onboarding step that highlights the feature during first-time user experience. Users who complete the onboarding see 2.3x higher adoption rates.',
-    confidence: '94%',
-  },
-  {
-    type: 'Anomaly',
-    icon: AlertCircle,
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    title: 'Crash rate spike on Android build 21014',
-    description: 'Crash rate exceeded 1.2% threshold on Android build 21014, affecting ~450 users. Root cause analysis points to a memory leak in the image carousel component. Device models Samsung Galaxy S21 and S22 are disproportionately affected (68% of crashes).',
-    confidence: '98%',
-  },
-  {
-    type: 'Forecast',
-    icon: TrendingUp,
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
-    title: 'DAU projected to reach 14.2K in 6 weeks',
-    description: 'Based on current growth trajectory and seasonal patterns, DAU is forecasted to reach 14.2K ±800 by November 27th. The model accounts for typical end-of-quarter uplift and the upcoming holiday season. Confidence interval widens after week 4 due to external factors.',
-    confidence: '87%',
-  },
-];
+export function AIInsightsModule({
+  platform = "all",
+  region = "all",
+  featureName = "all",
+  version = "all",
+  segment = "all",
+}: {
+  platform?: string;
+  region?: string;
+  featureName?: string;
+  version?: string;
+  segment?: string;
+}) {
+  const [insights, setInsights] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export function AIInsightsModule() {
+  // Convert backend → your UI card structure
+  const mapApiToInsights = (data: any) => {
+    return [
+      {
+        type: "Key Insight",
+        icon: Lightbulb,
+        color: "text-blue-600",
+        bgColor: "bg-blue-50",
+        borderColor: "border-blue-200",
+        title: data.key_insight?.title,
+        description: data.key_insight?.content,
+        confidence: `${data.key_insight?.confidence}%`,
+      },
+      {
+        type: "Anomaly",
+        icon: AlertCircle,
+        color: "text-red-600",
+        bgColor: "bg-red-50",
+        borderColor: "border-red-200",
+        title: data.anomaly?.title,
+        description: data.anomaly?.content,
+        confidence: `${data.anomaly?.confidence}%`,
+      },
+      {
+        type: "Forecast",
+        icon: TrendingUp,
+        color: "text-green-600",
+        bgColor: "bg-green-50",
+        borderColor: "border-green-200",
+        title: data.forecast?.title,
+        description: data.forecast?.content,
+        confidence: `${data.forecast?.confidence}%`,
+      },
+    ];
+  };
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        setLoading(true);
+
+        const data = await getAIInsights(
+          platform,
+          region,
+          featureName,
+          version,
+          segment
+        );
+
+        setInsights(mapApiToInsights(data));
+      } catch (err: any) {
+        setError(err.message || "Failed to load insights");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInsights();
+  }, [platform, region, featureName, version, segment]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="p-6 text-slate-500">
+        Loading AI Insights...
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-6 text-red-600">
+        Failed to load insights: {error}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-slate-900">AI Insights</h2>
-          <p className="text-sm text-slate-500">Automated insights from your product data</p>
+          <p className="text-sm text-slate-500">
+            Automated insights from your product data
+          </p>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {insights.map((insight, i) => {
           const Icon = insight.icon;
@@ -65,9 +130,11 @@ export function AIInsightsModule() {
                   </div>
                 </div>
               </div>
-              
+
               <h4 className="text-slate-900 mb-2">{insight.title}</h4>
-              <p className="text-sm text-slate-600 leading-relaxed">{insight.description}</p>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {insight.description}
+              </p>
             </Card>
           );
         })}

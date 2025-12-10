@@ -5,19 +5,7 @@ import { Button } from "./ui/button";
 import { Rocket, Wrench, ChevronRight } from "lucide-react";
 import { getAIRecommendations } from "../api/dashboardApi";
 
-export function RecommendationsModule({
-  platform = "all",
-  region = "all",
-  featureName = "all",
-  version = "all",
-  segment = "all",
-}: {
-  platform?: string;
-  region?: string;
-  featureName?: string;
-  version?: string;
-  segment?: string;
-}) {
+export function RecommendationsModule({ filters = {} }: { filters?: any }) {
   const [recs, setRecs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,11 +43,7 @@ export function RecommendationsModule({
       try {
         setLoading(true);
         const data = await getAIRecommendations(
-          platform,
-          region,
-          featureName,
-          version,
-          segment
+         filters
         );
         setRecs(mapApiToUI(data));
       } catch (err: any) {
@@ -70,7 +54,7 @@ export function RecommendationsModule({
     };
 
     fetchRecs();
-  }, [platform, region, featureName, version, segment]);
+  }, [JSON.stringify(filters)]);
 
   if (loading) {
     return <div className="p-6 text-slate-500">Loading recommendations...</div>;

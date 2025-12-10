@@ -102,7 +102,7 @@ export default function App() {
 
         <AskAIPanel />
         <AIInsightsModule filters={filters} />
-        <RecommendationsModule />
+        <RecommendationsModule filters={filters}/>
         <RCAPanel filters={filters}/>
       </div>
     </div>

@@ -10,7 +10,18 @@ const data = [
   { cohort: 'Week 6', adoption: 72, retention: 67 },
 ];
 
-export function CohortAdoptionChart() {
+interface CohortAdoption {
+  week: string;
+  adoption: number;
+  retention: number;
+}
+
+interface CohortAdoptionChartProps {
+  data: CohortAdoption[];
+}
+
+
+export function CohortAdoptionChart({ data }: CohortAdoptionChartProps) {
   return (
     <Card className="p-6">
       <div className="mb-4">
@@ -20,7 +31,7 @@ export function CohortAdoptionChart() {
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="cohort" stroke="#64748b" fontSize={12} />
+          <XAxis dataKey="week" stroke="#64748b" fontSize={12} />
           <YAxis stroke="#64748b" fontSize={12} />
           <Tooltip 
             contentStyle={{ 

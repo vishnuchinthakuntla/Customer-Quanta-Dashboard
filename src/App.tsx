@@ -19,7 +19,7 @@ export default function App() {
   const [filters, setFilters] = useState({
     platform: 'all',
     version: 'all',
-    feature: 'all',
+    feature_name: 'all',
      segment: 'all',
      region: 'all',
   });
@@ -66,7 +66,9 @@ export default function App() {
             setLoading(false);
           }
         });
-    }, 300); // 300ms debounce — tweak if you like
+    }, 300); 
+
+    console.log(dashboardData,"dashboardData");
 
     return () => {
       if (debounceRef.current) {
@@ -81,11 +83,11 @@ export default function App() {
       <div className="p-6 space-y-6">
         <FilterBar filters={filters} onFilterChange={setFilters} />
 
-         <KPIRow filters={filters} />
+         <KPIRow filters={filters}  kpis={dashboardData?.cards?.overall}/>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <UsageTrendsChart />
-          <CohortAdoptionChart />
+          <UsageTrendsChart  data= {dashboardData?.usage_trends_chart?.data}/>
+          <CohortAdoptionChart data= {dashboardData?.cohort_chart?.data}/>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -95,8 +97,8 @@ export default function App() {
           <WebVitalsWidget  />
         </div>
 
-        <ConversionFunnelChart  />
-        <ExperimentsTable  />
+        <ConversionFunnelChart funnelSteps = {dashboardData?.conversion_funnel_details}/>
+        <ExperimentsTable  experiments={dashboardData?.ab_experiments}/>
 
         <AskAIPanel />
         <AIInsightsModule filters={filters} />

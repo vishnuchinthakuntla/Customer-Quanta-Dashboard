@@ -19,9 +19,9 @@ interface NormalizedOption {
 
 interface NormalizedFilters {
   platforms: NormalizedOption[];
-  versions: NormalizedOption[];
+  // versions: NormalizedOption[];
   features: NormalizedOption[];
-  segments: NormalizedOption[];
+  // segments: NormalizedOption[];
   regions: NormalizedOption[];
 }
 
@@ -29,7 +29,7 @@ interface FilterBarProps {
   filters: {
     platform: string;
     version: string;
-    feature: string;
+    feature_name: string;
     segment: string;
     region: string;
   };
@@ -39,9 +39,9 @@ interface FilterBarProps {
 export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
   const [filterOptions, setFilterOptions] = useState<NormalizedFilters>({
     platforms: [],
-    versions: [],
+    // versions: [],
     features: [],
-    segments: [],
+    // segments: [],
     regions: [],
   });
 
@@ -65,9 +65,9 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
 
         setFilterOptions({
           platforms: normalize(data.platforms || [], "All Platforms"),
-          versions: normalize(data.versions || [], "All Versions"),
+          // versions: normalize(data.versions || [], "All Versions"),
           features: normalize(data.features || [], "All Features"),
-          segments: normalize(data.segments || [], "All Segments"),
+          // segments: normalize(data.segments || [], "All Segments"),
           regions: normalize(data.regions || [], "All Regions"),
         });
 
@@ -110,7 +110,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
         </Select>
 
         {/* VERSION */}
-        <Select
+        {/* <Select
           value={filters.version}
           onValueChange={(v) => handleChange("version", v)}
         >
@@ -124,12 +124,12 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
 
         {/* FEATURE */}
         <Select
-          value={filters.feature}
-          onValueChange={(v) => handleChange("feature", v)}
+          value={filters.feature_name}
+          onValueChange={(v) => handleChange("feature_name", v)}
         >
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Feature" />
@@ -144,7 +144,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
         </Select>
 
         {/* SEGMENT */}
-        <Select
+        {/* <Select
           value={filters.segment}
           onValueChange={(v) => handleChange("segment", v)}
         >
@@ -158,7 +158,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
               </SelectItem>
             ))}
           </SelectContent>
-        </Select>
+        </Select> */}
 
         {/* REGION */}
         <Select

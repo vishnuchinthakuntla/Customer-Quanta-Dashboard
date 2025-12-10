@@ -42,7 +42,21 @@ const experiments = [
   },
 ];
 
-export function ExperimentsTable() {
+interface Experiment {
+  experiment: string;
+  variant: string;
+  primaryMetric: string;
+  uplift: number;
+  pValue: number;
+  guardrail: string;
+  status: string;
+}
+
+interface ExperimentsTableProps {
+  experiments: Experiment[];   // array of objects
+}
+
+export function ExperimentsTable({ experiments }: ExperimentsTableProps) {
   return (
     <Card className="p-6">
       <div className="mb-4">
@@ -64,15 +78,15 @@ export function ExperimentsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {experiments.map((exp, i) => (
+            {experiments?.map((exp, i) => (
               <TableRow key={i}>
-                <TableCell>{exp.name}</TableCell>
+                <TableCell>{exp.experiment}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{exp.variant}</Badge>
                 </TableCell>
-                <TableCell className="text-slate-600">{exp.metric}</TableCell>
+                <TableCell className="text-slate-600">{exp.primaryMetric}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1">
+                  {/* <div className="flex items-center gap-1">
                     {exp.uplift.startsWith('+') ? (
                       <TrendingUp className="w-4 h-4 text-green-600" />
                     ) : exp.uplift.startsWith('-') ? (
@@ -87,12 +101,38 @@ export function ExperimentsTable() {
                     }>
                       {exp.uplift}
                     </span>
-                  </div>
+                  </div> */}
+                  <div className="flex items-center gap-1">
+  {exp.uplift > 0 ? (
+    <TrendingUp className="w-4 h-4 text-green-600" />
+  ) : exp.uplift < 0 ? (
+    <TrendingDown className="w-4 h-4 text-red-600" />
+  ) : (
+    <Minus className="w-4 h-4 text-slate-400" />
+  )}
+
+  <span
+    className={
+      exp.uplift > 0
+        ? "text-green-600"
+        : exp.uplift < 0
+        ? "text-red-600"
+        : "text-slate-600"
+    }
+  >
+    {exp.uplift}%
+  </span>
+</div>
+
                 </TableCell>
                 <TableCell>
-                  <Badge variant={parseFloat(exp.pvalue) < 0.05 ? 'default' : 'secondary'}>
+                  {/* <Badge variant={parseFloat(exp.pvalue) < 0.05 ? 'default' : 'secondary'}>
                     {exp.pvalue}
-                  </Badge>
+                  </Badge> */}
+                  <Badge variant={exp.pValue < 0.05 ? 'default' : 'secondary'}>
+  {exp.pValue}
+</Badge>
+
                 </TableCell>
                 <TableCell className="text-sm text-slate-600">{exp.guardrail}</TableCell>
                 <TableCell>

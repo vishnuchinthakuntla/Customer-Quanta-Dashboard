@@ -4,19 +4,7 @@ import { Badge } from "./ui/badge";
 import { Lightbulb, AlertCircle, TrendingUp } from "lucide-react";
 import { getAIInsights } from "../api/dashboardApi"; 
 
-export function AIInsightsModule({
-  platform = "all",
-  region = "all",
-  featureName = "all",
-  version = "all",
-  segment = "all",
-}: {
-  platform?: string;
-  region?: string;
-  featureName?: string;
-  version?: string;
-  segment?: string;
-}) {
+export function AIInsightsModule({ filters = {} }: { filters?: any }) {
   const [insights, setInsights] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +51,7 @@ export function AIInsightsModule({
         setLoading(true);
 
         const data = await getAIInsights(
-          platform,
-          region,
-          featureName,
-          version,
-          segment
+          filters
         );
 
         setInsights(mapApiToInsights(data));
@@ -79,7 +63,7 @@ export function AIInsightsModule({
     };
 
     fetchInsights();
-  }, [platform, region, featureName, version, segment]);
+  }, [JSON.stringify(filters)]);
 
   // Loading state
   if (loading) {

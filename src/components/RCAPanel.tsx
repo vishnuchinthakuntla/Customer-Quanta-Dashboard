@@ -29,6 +29,8 @@ export function RCAPanel({ filters = {} }: { filters?: any }) {
   const [featureCohortData, setFeatureCohortData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+
+
   // --------------------------------------
   // Fetch Crash + Cohort Data
   // --------------------------------------
@@ -66,7 +68,7 @@ export function RCAPanel({ filters = {} }: { filters?: any }) {
     };
 
     fetchCharts();
-  }, [JSON.stringify(filters)]); // FIX infinite re-renders
+  }, [JSON.stringify(filters)]); 
 
   // --------------------------------------
   // UI Rendering

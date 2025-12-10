@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef} from 'react';
 
 import { AppHeader } from './components/AppHeader';
 import { FilterBar } from './components/FilterBar';
@@ -13,19 +13,67 @@ import { AskAIPanel } from './components/AskAIPanel';
 import { AIInsightsModule } from './components/AIInsightsModule';
 import { RecommendationsModule } from './components/RecommendationsModule';
 import { RCAPanel } from './components/RCAPanel';
+import { getDashboard } from "./api/dashboardApi";
 
 export default function App() {
   const [filters, setFilters] = useState({
     platform: 'all',
     version: 'all',
     feature: 'all',
-    segment: 'all',
-    region: 'all',
+     segment: 'all',
+     region: 'all',
   });
 
-  // Placeholder dashboard data (since Supabase was removed)
-  const dashboardData = null;
+  console.log(filters,"filterssss")
 
+  // Placeholder dashboard data (since Supabase was removed)
+  // const dashboardData = null;
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // debounce timer
+  const debounceRef = useRef<number | null>(null);
+  // track latest request to avoid applying stale responses
+  const latestCallId = useRef(0);
+
+  useEffect(() => {
+    // call API when filters change (debounced)
+    if (debounceRef.current) {
+      window.clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = window.setTimeout(() => {
+      const callId = ++latestCallId.current;
+      setLoading(true);
+      setError(null);
+
+      getDashboard(filters)
+        .then((resp) => {
+          // apply response only if it is the latest call
+          if (callId === latestCallId.current) {
+            setDashboardData(resp.data ?? resp); // adapt depending on your DashboardResponse shape
+          }
+        })
+        .catch((err) => {
+          if (callId === latestCallId.current) {
+            setError(err?.message ?? "Failed to fetch dashboard");
+            setDashboardData(null);
+          }
+        })
+        .finally(() => {
+          if (callId === latestCallId.current) {
+            setLoading(false);
+          }
+        });
+    }, 300); // 300ms debounce — tweak if you like
+
+    return () => {
+      if (debounceRef.current) {
+        window.clearTimeout(debounceRef.current);
+      }
+    };
+  }, [filters]);
   return (
     <div className="min-h-screen bg-slate-50">
       <AppHeader />
@@ -51,9 +99,9 @@ export default function App() {
         <ExperimentsTable  />
 
         <AskAIPanel />
-        <AIInsightsModule />
+        <AIInsightsModule filters={filters} />
         <RecommendationsModule />
-        <RCAPanel />
+        <RCAPanel filters={filters}/>
       </div>
     </div>
   );

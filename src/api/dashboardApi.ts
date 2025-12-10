@@ -14,14 +14,28 @@ import { normalizeFilters } from "../utils/filterUtils";
 // ------------------------------------------------
 //  Get Crash Rate By Device  (supports ONLY platform)
 // ------------------------------------------------
+// export const getCrashRateByDevice = async (
+//   filters: any
+// ): Promise<CrashRateResponse> => {
+//   const params = normalizeFilters(filters, ["platform"]);
+
+//   const res = await baseApi.post<CrashRateResponse>(
+//     "/crash-rate-by-device",
+//     {},
+//     { params }
+//   );
+
+//   return res.data;
+// };
+
 export const getCrashRateByDevice = async (
   filters: any
 ): Promise<CrashRateResponse> => {
-  const params = normalizeFilters(filters, ["platform"]);
+  const params = normalizeFilters(filters, ["platform", "region", "version", "segment", "feature_name"]);
 
   const res = await baseApi.post<CrashRateResponse>(
     "/crash-rate-by-device",
-    {},
+    {}, // body (if any)
     { params }
   );
 
@@ -77,6 +91,7 @@ export const getDashboard = async (
 // ------------------------------------------------
 // AI Insights (supports ALL filters)
 // ------------------------------------------------
+
 export const getAIInsights = async (
   filters: any
 ): Promise<AIInsightsResponse> => {
@@ -90,7 +105,7 @@ export const getAIInsights = async (
 
   const res = await baseApi.post<AIInsightsResponse>(
     "/ai-insights",
-    "",
+    {},
     {
       params,
       headers: { accept: "application/json" },

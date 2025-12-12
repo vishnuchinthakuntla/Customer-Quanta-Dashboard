@@ -1,13 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Lightbulb, AlertCircle, TrendingUp } from "lucide-react";
-import { getAIInsights } from "../api/dashboardApi"; 
+import { getAIInsights } from "../api/dashboardApi";
 
-export function AIInsightsModule({ filters = {} }: { filters?: any }) {
+interface AIInsightsModuleProps {
+  filters?: any;
+  loadTrigger?: number; // increment this in parent when Apply is clicked
+}
+
+export function AIInsightsModule({ filters = {}, loadTrigger }: AIInsightsModuleProps) {
   const [insights, setInsights] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const mountedRef = useRef(false);
 
   // Convert backend → your UI card structure
   const mapApiToInsights = (data: any) => {
@@ -18,9 +25,9 @@ export function AIInsightsModule({ filters = {} }: { filters?: any }) {
         color: "text-blue-600",
         bgColor: "bg-blue-50",
         borderColor: "border-blue-200",
-        title: data.key_insight?.title,
-        description: data.key_insight?.content,
-        confidence: `${data.key_insight?.confidence}%`,
+        title: data?.key_insight?.title,
+        description: data?.key_insight?.content,
+        confidence: `${data?.key_insight?.confidence ?? ""}%`,
       },
       {
         type: "Anomaly",
@@ -28,9 +35,9 @@ export function AIInsightsModule({ filters = {} }: { filters?: any }) {
         color: "text-red-600",
         bgColor: "bg-red-50",
         borderColor: "border-red-200",
-        title: data.anomaly?.title,
-        description: data.anomaly?.content,
-        confidence: `${data.anomaly?.confidence}%`,
+        title: data?.anomaly?.title,
+        description: data?.anomaly?.content,
+        confidence: `${data?.anomaly?.confidence ?? ""}%`,
       },
       {
         type: "Forecast",
@@ -38,32 +45,45 @@ export function AIInsightsModule({ filters = {} }: { filters?: any }) {
         color: "text-green-600",
         bgColor: "bg-green-50",
         borderColor: "border-green-200",
-        title: data.forecast?.title,
-        description: data.forecast?.content,
-        confidence: `${data.forecast?.confidence}%`,
+        title: data?.forecast?.title,
+        description: data?.forecast?.content,
+        confidence: `${data?.forecast?.confidence ?? ""}%`,
       },
     ];
   };
 
+  const fetchInsights = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await getAIInsights(filters);
+      setInsights(mapApiToInsights(data));
+    } catch (err: any) {
+      console.error("AI insights fetch failed", err);
+      setError(err?.message ?? "Failed to load insights");
+      setInsights([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchInsights = async () => {
-      try {
-        setLoading(true);
+    // initial mount
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      fetchInsights();
+      return;
+    }
 
-        const data = await getAIInsights(
-          filters
-        );
-
-        setInsights(mapApiToInsights(data));
-      } catch (err: any) {
-        setError(err.message || "Failed to load insights");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInsights();
-  }, [JSON.stringify(filters)]);
+    // subsequent runs only when parent increments loadTrigger
+    if (typeof loadTrigger !== "undefined") {
+      fetchInsights();
+    }
+    // NOTE: we intentionally do NOT depend on filters here so changing selects won't auto-trigger fetch
+    // dependencies: loadTrigger only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadTrigger]);
 
   // Loading state
   if (loading) {

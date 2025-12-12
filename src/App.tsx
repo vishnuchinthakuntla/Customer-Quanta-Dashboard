@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef} from 'react';
-
 import { AppHeader } from './components/AppHeader';
 import { FilterBar } from './components/FilterBar';
 import { KPIRow } from './components/KPIRow';
@@ -24,21 +23,15 @@ export default function App() {
      region: 'all',
   });
 
-  console.log(filters,"filterssss")
 
-  // Placeholder dashboard data (since Supabase was removed)
-  // const dashboardData = null;
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // debounce timer
   const debounceRef = useRef<number | null>(null);
-  // track latest request to avoid applying stale responses
   const latestCallId = useRef(0);
 
   useEffect(() => {
-    // call API when filters change (debounced)
     if (debounceRef.current) {
       window.clearTimeout(debounceRef.current);
     }
@@ -50,9 +43,8 @@ export default function App() {
 
       getDashboard(filters)
         .then((resp) => {
-          // apply response only if it is the latest call
           if (callId === latestCallId.current) {
-            setDashboardData(resp.data ?? resp); // adapt depending on your DashboardResponse shape
+            setDashboardData(resp.data ?? resp); 
           }
         })
         .catch((err) => {
@@ -68,7 +60,6 @@ export default function App() {
         });
     }, 300); 
 
-    console.log(dashboardData,"dashboardData");
 
     return () => {
       if (debounceRef.current) {
@@ -76,34 +67,36 @@ export default function App() {
       }
     };
   }, [filters]);
+
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AppHeader />
 
       <div className="p-6 space-y-6">
-        <FilterBar filters={filters} onFilterChange={setFilters} />
+        <FilterBar filters={filters} onFilterChange={setFilters}  />
 
-         <KPIRow filters={filters}  kpis={dashboardData?.cards?.overall}/>
+        <KPIRow filters={filters} kpis={dashboardData?.cards?.overall} loading={loading} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <UsageTrendsChart  data= {dashboardData?.usage_trends_chart?.data}/>
-          <CohortAdoptionChart data= {dashboardData?.cohort_chart?.data}/>
+          <UsageTrendsChart data={dashboardData?.usage_trends_chart?.data} loading={loading} />
+          <CohortAdoptionChart data={dashboardData?.cohort_chart?.data} loading={loading} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <TTVDistributionChart />
+            <TTVDistributionChart data={dashboardData?.time_to_value_distribution} loading={loading} />
           </div>
-          <WebVitalsWidget  />
+          <WebVitalsWidget data={dashboardData?.web_vitals} loading={loading} />
         </div>
 
-        <ConversionFunnelChart funnelSteps = {dashboardData?.conversion_funnel_details}/>
-        <ExperimentsTable  experiments={dashboardData?.ab_experiments}/>
+        <ConversionFunnelChart funnelSteps={dashboardData?.conversion_funnel_details} loading={loading} />
+        <ExperimentsTable experiments={dashboardData?.ab_experiments} loading={loading} />
 
-        <AskAIPanel />
-        <AIInsightsModule filters={filters} />
-        <RecommendationsModule filters={filters}/>
-        <RCAPanel filters={filters}/>
+        <AskAIPanel loading={loading} />
+        <AIInsightsModule filters={filters} loading={loading} />
+        <RecommendationsModule filters={filters} loading={loading} />
+        <RCAPanel filters={filters} loading={loading} />
       </div>
     </div>
   );

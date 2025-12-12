@@ -1,19 +1,28 @@
 import { Card } from './ui/card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { time: '0-1min', users: 1200 },
-  { time: '1-2min', users: 2800 },
-  { time: '2-3min', users: 3600 },
-  { time: '3-4min', users: 2400 },
-  { time: '4-5min', users: 1800 },
-  { time: '5-6min', users: 1200 },
-  { time: '6-7min', users: 800 },
-  { time: '7-8min', users: 400 },
-  { time: '8+min', users: 200 },
-];
+// const data = [
+//   { time: '0-1min', users: 1200 },
+//   { time: '1-2min', users: 2800 },
+//   { time: '2-3min', users: 3600 },
+//   { time: '3-4min', users: 2400 },
+//   { time: '4-5min', users: 1800 },
+//   { time: '5-6min', users: 1200 },
+//   { time: '6-7min', users: 800 },
+//   { time: '7-8min', users: 400 },
+//   { time: '8+min', users: 200 },
+// ];
 
-export function TTVDistributionChart() {
+export interface TimeToValueItem {
+  time_range: string;
+  users: number;
+}
+
+export interface TTVDistributionChartProps {
+  data?: TimeToValueItem[];   // optional because you are using dashboardData?.
+}
+
+export function TTVDistributionChart({ data }: TTVDistributionChartProps) {
   return (
     <Card className="p-6">
       <div className="mb-4">
@@ -29,7 +38,7 @@ export function TTVDistributionChart() {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="time" stroke="#64748b" fontSize={12} />
+          <XAxis dataKey="time_range" stroke="#64748b" fontSize={12} />
           <YAxis stroke="#64748b" fontSize={12} />
           <Tooltip 
             contentStyle={{ 

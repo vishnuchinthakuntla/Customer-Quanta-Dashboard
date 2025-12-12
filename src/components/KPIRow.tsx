@@ -1,6 +1,7 @@
 import { Users, Target, Zap, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
+import  Loader  from '../utils/Loader';
 
 const IconMap: Record<string, any> = {
   users: Users,
@@ -24,9 +25,14 @@ export interface KPIItem {
 interface KPIRowProps {
   filters?: any;
   kpis?: Record<string, KPIItem> | null;
+  loading?: boolean;
 }
 
-export function KPIRow({ kpis }: KPIRowProps) {
+export function KPIRow({ kpis, loading }: KPIRowProps) {
+  if (loading) {
+    return <Loader/>;
+  }
+
   if (!kpis) {
     return (
       <div className="text-center py-6 text-slate-500">
@@ -35,7 +41,6 @@ export function KPIRow({ kpis }: KPIRowProps) {
     );
   }
 
-  // Convert incoming object → array for UI
   const mapped = Object.keys(kpis).map((key) => {
     const item = kpis[key];
 

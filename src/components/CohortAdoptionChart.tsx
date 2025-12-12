@@ -1,5 +1,7 @@
 import { Card } from './ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import  Loader  from '../utils/Loader';
+
 
 const data = [
   { cohort: 'Week 1', adoption: 45, retention: 78 },
@@ -18,16 +20,23 @@ interface CohortAdoption {
 
 interface CohortAdoptionChartProps {
   data: CohortAdoption[];
+  loading?: boolean;
+
 }
 
 
-export function CohortAdoptionChart({ data }: CohortAdoptionChartProps) {
+export function CohortAdoptionChart({ data, loading  }: CohortAdoptionChartProps) {
   return (
     <Card className="p-6">
       <div className="mb-4">
         <h3 className="text-slate-900">Adoption by Cohort</h3>
         <p className="text-sm text-slate-500">Feature adoption & retention by user cohort</p>
       </div>
+       {loading ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <Loader />
+        </div>
+      ) : (
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -45,7 +54,7 @@ export function CohortAdoptionChart({ data }: CohortAdoptionChartProps) {
           <Bar dataKey="adoption" fill="#3b82f6" radius={[4, 4, 0, 0]} />
           <Bar dataKey="retention" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
         </BarChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer>)}
     </Card>
   );
 }

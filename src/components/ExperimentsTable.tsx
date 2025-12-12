@@ -2,6 +2,8 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import  Loader  from '../utils/Loader';
+
 
 const experiments = [
   {
@@ -54,9 +56,12 @@ interface Experiment {
 
 interface ExperimentsTableProps {
   experiments: Experiment[];   // array of objects
+  loading?: boolean;
+
 }
 
-export function ExperimentsTable({ experiments }: ExperimentsTableProps) {
+export function ExperimentsTable({ experiments , loading }: ExperimentsTableProps) {
+   
   return (
     <Card className="p-6">
       <div className="mb-4">
@@ -64,7 +69,11 @@ export function ExperimentsTable({ experiments }: ExperimentsTableProps) {
         <p className="text-sm text-slate-500">Active experiments with uplifts and guardrails</p>
       </div>
       
-      <div className="overflow-x-auto">
+       {loading ? (
+        <div className="flex justify-center items-center h-[300px]">
+          <Loader />
+        </div>
+      ) : (<div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -130,7 +139,7 @@ export function ExperimentsTable({ experiments }: ExperimentsTableProps) {
                     {exp.pvalue}
                   </Badge> */}
                   <Badge variant={exp.pValue < 0.05 ? 'default' : 'secondary'}>
-  {exp.pValue}
+  {Number(exp.pValue).toFixed(2)}
 </Badge>
 
                 </TableCell>
@@ -148,7 +157,7 @@ export function ExperimentsTable({ experiments }: ExperimentsTableProps) {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </div>)}
     </Card>
   );
 }

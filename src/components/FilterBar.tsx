@@ -45,39 +45,108 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
     regions: [],
   });
 
+
   // Fetch filters from backend
-  useEffect(() => {
-    async function loadFilters() {
-      try {
-        const res = await getFilters();
-        const data = res.data;
+  // useEffect(() => {
+  //   async function loadFilters() {
+  //     try {
+  //       const res = await getFilters();
+  //       const data = res.data;
 
-        const normalize = (
-          arr: string[],
-          defaultLabel: string
-        ): NormalizedOption[] => [
-            { value: "all", label: defaultLabel }, // ✔ Radix requires non-empty values
-            ...arr.map((item) => ({
-              value: item.toLowerCase().replace(/\s+/g, "_"),
-              label: item,
-            })),
-          ];
+  //       const normalize = (
+  //         arr: string[],
+  //         defaultLabel: string
+  //       ): NormalizedOption[] => [
+  //           { value: "all", label: defaultLabel }, // ✔ Radix requires non-empty values
+  //           ...arr.map((item) => ({
+  //             value: item.toLowerCase().replace(/\s+/g, "_"),
+  //             label: item,
+  //           })),
+  //         ];
 
-        setFilterOptions({
-          platforms: normalize(data.platforms || [], "All Platforms"),
-          // versions: normalize(data.versions || [], "All Versions"),
-          features: normalize(data.features || [], "All Features"),
-          // segments: normalize(data.segments || [], "All Segments"),
-          regions: normalize(data.regions || [], "All Regions"),
+  //       setFilterOptions({
+  //         platforms: normalize(data.platforms || [], "All Platforms"),
+  //         // versions: normalize(data.versions || [], "All Versions"),
+  //         features: normalize(data.features || [], "All Features"),
+  //         // segments: normalize(data.segments || [], "All Segments"),
+  //         regions: normalize(data.regions || [], "All Regions"),
+  //       });
+
+  //     } catch (error) {
+  //       console.error("Error loading filters:", error);
+  //     }
+  //   }
+
+  //   loadFilters();
+  // }, []);
+
+useEffect(() => {
+  async function loadFilters() {
+    try {
+      const res = await getFilters();
+      const data = res.data;
+
+      const normalize = (
+        arr: string[] = [],
+        defaultLabel: string
+      ): NormalizedOption[] => {
+        const toValue = (s: string) =>
+          s
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_");
+
+        const cleaned = arr
+          .map((s) => (s == null ? "" : String(s).trim()))
+          .filter((s) => s.length > 0 && /[A-Za-z0-9]/.test(s));
+
+        const filtered = cleaned.filter((item) => {
+          const lower = item.toLowerCase();
+          const val = toValue(item);
+
+          if (lower === defaultLabel.toLowerCase()) return false; 
+          if (lower === "all") return false; 
+          if (val.startsWith("all_")) return false; 
+
+          return true;
         });
 
-      } catch (error) {
-        console.error("Error loading filters:", error);
-      }
-    }
+        const seen = new Set<string>();
+        const unique: string[] = [];
 
-    loadFilters();
-  }, []);
+        for (const item of filtered) {
+          const v = toValue(item);
+          if (!seen.has(v)) {
+            seen.add(v);
+            unique.push(item);
+          }
+        }
+
+        return [
+          { value: "all", label: defaultLabel },
+          ...unique.map((item) => ({
+            value: toValue(item),
+            label: item,
+          })),
+        ];
+      };
+
+      setFilterOptions({
+        platforms: normalize(data.platforms || [], "All Platforms"),
+        features: normalize(data.features || [], "All Features"),
+        regions: normalize(data.regions || [], "All Regions"),
+      });
+
+    } catch (error) {
+      console.error("Error loading filters:", error);
+    }
+  }
+
+  loadFilters();
+}, []);
+
+
 
   const handleChange = (key: string, value: string) => {
     onFilterChange({ ...filters, [key]: value });
